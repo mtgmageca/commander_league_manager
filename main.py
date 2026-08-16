@@ -168,8 +168,8 @@ def main(pc_data_file):
 #-- Call Main program
 if __name__ == "__main__":
     pc_data_file = ""
-    if "data_file" in st.secrets:
-        pc_data_file = st.secrets["data_file"]
+    if "DATA_FILE" in st.secrets:
+        pc_data_file = st.secrets["DATA_FILE"]
 
     else:
         if len(sys.argv) < 2:
