@@ -1,10 +1,64 @@
 import sys
 import os
 import json
+import requests
+import base64
 from datetime import datetime
-import urllib.parse
 import streamlit as st
 
+
+def push_dat_file(pc_data_file, pa_league_data):
+    ll_cont = True
+
+    if "GITHUB_USER" in st.secrets and "GITHUB_REPO" in st.secrets and "GITHUB_PAT" in st.secrets:
+        lc_repo_owner = st.secrets["GITHUB_USER"]
+        lc_repo_name = st.secrets["GITHUB_REPO"]
+        lc_github_pat = st.secrets["GITHUB_PAT"]
+
+    else:
+        st.error("GitHub credentials are not set in Streamlit secrets.")
+        ll_cont = False
+
+    if ll_cont:
+        #-- GitHub API Endpoint for contents
+        lc_github_file_url = f"https://github.com{lc_repo_owner}/{lc_repo_name}/contents/{pc_data_file}"
+
+        la_headers = {
+            "Authorization": f"token {lc_github_pat}",
+            "Accept": "application/vnd.github.v3+json"
+        }
+
+        #-- Check if the file already exists to get its 'sha' (required for updates)
+        lo_response = requests.get(lc_github_file_url, headers=la_headers, params={"ref": "main"})
+
+        lc_sha = None
+        if lo_response.status_code == 200:
+            lc_sha = lo_response.json().get("sha")
+
+        #-- Encode your data to Base64 (GitHub API requirement)
+        lo_encoded_content = base64.b64encode(json.dumps(pa_league_data).encode("utf-8")).decode("utf-8")
+
+        #-- Construct payload for the commit
+        la_payload = {
+            "message": f"Update {pc_data_file} from Streamlit App",
+            "content": lo_encoded_content,
+            "branch": "main"
+        }
+
+        #-- Include sha if updating an existing file
+        if lc_sha:
+            la_payload["sha"] = lc_sha
+
+        #-- Send PUT request to execute the commit
+        lo_put_response = requests.put(lc_github_file_url, headers=la_headers, json=la_payload)
+
+        if lo_put_response.status_code in [200, 201]:
+            st.success("Successfully committed data changes to GitHub! 🎉")
+        else:
+            st.error(f"Failed to commit. Error: {lo_put_response.json().get('message')}")
+            ll_cont = False
+
+    return ll_cont
 
 def get_points(pa_league_data, pc_player, pc_session_id="", pc_round_id=""):
     ln_points = 0
@@ -61,9 +115,6 @@ def main(pc_data_file):
             """, unsafe_allow_html=True)        
 
         lc_session_id = ""
-        #if "session_id" in la_query_params:
-        #    lc_session_id = la_query_params["session_id"]
-
         if "session_id" in st.session_state:
             lc_session_id = st.session_state["session_id"]
 
@@ -154,6 +205,10 @@ def main(pc_data_file):
 
                         except Exception as e:
                             st.error("Error saving league data file: " + str(e))
+                            ll_cont = False
+
+                        if ll_cont:
+                            ll_cont = push_dat_file(pc_data_file, la_league_data)
 
                         st.rerun()
 
