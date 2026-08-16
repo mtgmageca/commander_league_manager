@@ -167,13 +167,18 @@ def main(pc_data_file):
 
 #-- Call Main program
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("%s:  Error: %s\n" % (sys.argv[0], "Not enough command options given"))
-        print("Argument 1 (required): League data file (e.g. C:\\temp\\MSH_data.json)")
-        print(" ")
-        sys.exit(3)
-    else:
-        pc_data_file = sys.argv[1]
-        ln_exit_code = main(pc_data_file)
+    pc_data_file = ""
+    if "data_file" in st.secrets:
+        pc_data_file = st.secrets["data_file"]
 
-        sys.exit(ln_exit_code)
+    else:
+        if len(sys.argv) < 2:
+            print("%s:  Error: %s\n" % (sys.argv[0], "Not enough command options given"))
+            print("Argument 1 (required): League data file (e.g. C:\\temp\\MSH_data.json)")
+            print(" ")
+            sys.exit(3)
+        else:
+            pc_data_file = sys.argv[1]
+            ln_exit_code = main(pc_data_file)
+
+            sys.exit(ln_exit_code)
