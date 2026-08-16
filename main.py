@@ -176,9 +176,12 @@ if __name__ == "__main__":
             print("%s:  Error: %s\n" % (sys.argv[0], "Not enough command options given"))
             print("Argument 1 (required): League data file (e.g. C:\\temp\\MSH_data.json)")
             print(" ")
-            sys.exit(3)
         else:
             pc_data_file = sys.argv[1]
-            ln_exit_code = main(pc_data_file)
 
-            sys.exit(ln_exit_code)
+    if pc_data_file:
+        ln_exit_code = main(pc_data_file)
+    else:
+        ln_exit_code = 3
+
+    sys.exit(ln_exit_code)
