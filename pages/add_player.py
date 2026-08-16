@@ -3,6 +3,7 @@ import os
 import time
 import json
 import streamlit as st
+from main import push_dat_file
 
 
 ll_cont = True
@@ -14,8 +15,9 @@ if not lc_data_file:
 
 if ll_cont and os.path.isfile(lc_data_file):
     try:
-        lo_json_data=open(lc_data_file).read()
+        lo_json_data = open(lc_data_file).read()
         la_league_data = json.loads(lo_json_data)
+
     except Exception as e:
         print("Error reading league data file: " + str(e))
         ll_cont = False
@@ -46,10 +48,13 @@ with lo_hc2:
                 ll_cont = False
                 if not lc_username:
                     st.warning("Player name cannot be empty.")
+
                 elif not lc_commander:
                     st.warning("Commander name cannot be empty.")
+
                 elif lc_username in la_league_data["PLAYERS"]:
                     st.warning("Player already exists.")
+
                 else:
                     lc_username = lc_username.strip()
                     lc_commander = lc_commander.strip()
@@ -68,6 +73,9 @@ with lo_hc2:
 
                     except Exception as e:
                         st.error("Error saving league data file: " + str(e))
+
+                    if ll_cont:
+                        ll_cont = push_dat_file(lc_data_file, la_league_data)
 
                 if ll_cont:
                     st.switch_page("main.py")
