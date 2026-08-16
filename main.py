@@ -139,11 +139,12 @@ def main(pc_data_file):
         if "session_id" in st.session_state:
             lc_session_id = st.session_state["session_id"]
 
+        lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 6, 2, 2])
+        if lo_hc3.button("Admin Login"):
+            st.success("Login successful.")
+
         lc_league_name = os.path.basename(pc_data_file).upper()
         lc_league_name = lc_league_name[0:lc_league_name.find("_")]
-        st.write("")
-        st.write("")
-        st.write("")
         st.markdown("<center><h2>" + lc_league_name + " Commander League</h2></center>", unsafe_allow_html=True)
         if lc_session_id:
             st.markdown('<center><a href="/?session_id=" target="_self">(Home)</a></center>', unsafe_allow_html=True)
