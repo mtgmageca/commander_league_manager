@@ -55,7 +55,8 @@ def push_dat_file(pc_data_file, pa_league_data):
         if lo_put_response.status_code in [200, 201]:
             st.success("Successfully committed data changes to GitHub! 🎉")
         else:
-            st.error(f"Failed to commit. Error: {lo_put_response.json().get('message')}")
+            st.error(f"Failed to commit. Error: {lo_put_response}")
+            #st.error(f"Failed to commit. Error: {lo_put_response.json().get('message')}")
             ll_cont = False
 
     return ll_cont
