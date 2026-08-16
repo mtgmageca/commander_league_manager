@@ -4,6 +4,7 @@ import time
 import json
 import streamlit as st
 from main import push_dat_file
+from main import save
 
 
 ll_cont = True
@@ -65,17 +66,7 @@ with lo_hc2:
                         "SESSIONS": {}
                     }
 
-                    try:
-                        with open(lc_data_file, "w") as f:
-                            json.dump(la_league_data, f, indent=4)
-
-                        ll_cont = True
-
-                    except Exception as e:
-                        st.error("Error saving league data file: " + str(e))
-
-                    if ll_cont:
-                        ll_cont = push_dat_file(lc_data_file, la_league_data)
+                    ll_cont = save(lc_data_file, la_league_data)
 
                 if ll_cont:
                     st.switch_page("main.py")

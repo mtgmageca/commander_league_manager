@@ -4,6 +4,7 @@ import time
 import json
 import streamlit as st
 from main import get_points
+from main import save
 
 
 ll_cont = True
@@ -61,14 +62,7 @@ if ll_cont:
 
                     la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"][lc_round_id] = la_points[lc_player]
 
-                ll_cont = True
-                try:
-                    with open(lc_data_file, "w") as f:
-                        json.dump(la_league_data, f, indent=4)
-
-                except Exception as e:
-                    st.error("Error saving league data file: " + str(e))
-                    ll_cont = False
+                ll_cont = save(lc_data_file, la_league_data)
 
                 if ll_cont:
                     st.session_state["data_file"] = lc_data_file

@@ -5,6 +5,7 @@ import json
 import random
 import streamlit as st
 from main import get_points
+from main import save
 
 
 def generate_pods(pc_session_id, pa_league_data, pa_selected_players):
@@ -136,13 +137,7 @@ def apply_rares(pa_league_data, pc_session_id, pc_data_file):
 
             pa_league_data["PLAYERS"][lc_player]["SESSIONS"][pc_session_id]["RARES"] = pa_league_data["MIN_RARES"]
 
-    try:
-        with open(pc_data_file, "w") as f:
-            json.dump(pa_league_data, f, indent=4)
-
-    except Exception as e:
-        print("Error saving league data file: " + str(e))
-        ll_cont = False
+    ll_cont = save(pc_data_file, pa_league_data)
 
     return ll_cont
 
@@ -304,14 +299,10 @@ if ll_cont:
                             if lc_round_id in la_league_data["SESSIONS"][lc_session_id]:
                                 del la_league_data["SESSIONS"][lc_session_id][lc_round_id]
 
-                            try:
-                                with open(lc_data_file, "w") as f:
-                                    json.dump(la_league_data, f, indent=4)
+                            ll_cont = save(lc_data_file, la_league_data)
 
-                            except Exception as e:
-                                st.error("Error saving league data file: " + str(e))
-
-                            st.rerun()
+                            if ll_cont:
+                                st.rerun()
 
         if len(la_selected_players) > 4:
             lc_pods = "Pods"
@@ -325,14 +316,10 @@ if ll_cont:
         if st.button("Generate " + lc_pods, disabled=ll_gen_pods_disabled):
             la_league_data = generate_pods(lc_session_id, la_league_data, la_selected_players)
 
-            try:
-                with open(lc_data_file, "w") as f:
-                    json.dump(la_league_data, f, indent=4)
+            ll_cont = save(lc_data_file, la_league_data)
 
-            except Exception as e:
-                st.error("Error saving league data file: " + str(e))
-
-            st.rerun()
+            if ll_cont:
+                st.rerun()
 
         st.write("")
         st.write("")

@@ -54,9 +54,9 @@ def push_dat_file(pc_data_file, pa_league_data):
         lo_put_response = requests.put(lc_github_file_url, headers=la_headers, json=la_payload)
 
         if lo_put_response.status_code in [200, 201]:
-            st.success("Successfully committed data changes to GitHub! 🎉")
+            st.success("Saved.")
         else:
-            st.error(f"Failed to commit. Error: {lo_put_response}")
+            st.error(f"Save Failed!")
             print(lo_put_response.text)
             ll_cont = False
 
@@ -82,6 +82,21 @@ def get_points(pa_league_data, pc_player, pc_session_id="", pc_round_id=""):
                     ln_points += pa_league_data["PLAYERS"][pc_player]["SESSIONS"][lc_session_id]["ROUNDS"][lc_round_id]
 
     return ln_points
+
+def save(pc_data_file, pa_league_data):
+    ll_cont = True
+    try:
+        with open(pc_data_file, "w") as f:
+            json.dump(pa_league_data, f, indent=4)
+
+    except Exception as e:
+        print("Error saving league data file: " + str(e))
+        ll_cont = False
+
+    if ll_cont:
+        ll_cont = push_dat_file(pc_data_file, pa_league_data)
+
+    return ll_cont
 
 
 def main(pc_data_file):
@@ -205,18 +220,10 @@ def main(pc_data_file):
                         la_league_data["SESSIONS"][lc_current_date] = {}
                         st.session_state["session_id"] = lc_current_date
 
-                        try:
-                            with open(pc_data_file, "w") as f:
-                                json.dump(la_league_data, f, indent=4)
-
-                        except Exception as e:
-                            st.error("Error saving league data file: " + str(e))
-                            ll_cont = False
+                        ll_cont = save(pc_data_file, la_league_data)
 
                         if ll_cont:
-                            ll_cont = push_dat_file(pc_data_file, la_league_data)
-
-                        st.rerun()
+                            st.rerun()
 
     if ll_cont:
         ln_return_code = 0
