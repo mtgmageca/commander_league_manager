@@ -123,6 +123,11 @@
             "COMMANDER": "Shelob, Child of Ungoliant",
             "SECONDARY_COMMANDER": "",
             "SESSIONS": {}
+        },
+        "Dummy": {
+            "COMMANDER": "Dummy",
+            "SECONDARY_COMMANDER": "",
+            "SESSIONS": {}
         }
     },
     "SESSIONS": {}

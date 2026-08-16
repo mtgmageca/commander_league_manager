@@ -21,7 +21,8 @@ def push_dat_file(pc_data_file, pa_league_data):
 
     if ll_cont:
         #-- GitHub API Endpoint for contents
-        lc_github_file_url = f"https://github.com/{lc_repo_owner}/{lc_repo_name}/contents/{pc_data_file}"
+        lc_data_file_name = os.path.basename(pc_data_file)
+        lc_github_file_url = f"https://api.github.com/repos/{lc_repo_owner}/{lc_repo_name}/contents/{lc_data_file_name}"
 
         la_headers = {
             "Authorization": f"token {lc_github_pat}",
@@ -56,7 +57,7 @@ def push_dat_file(pc_data_file, pa_league_data):
             st.success("Successfully committed data changes to GitHub! 🎉")
         else:
             st.error(f"Failed to commit. Error: {lo_put_response}")
-            #st.error(f"Failed to commit. Error: {lo_put_response.json().get('message')}")
+            print(lo_put_response.text)
             ll_cont = False
 
     return ll_cont
@@ -85,16 +86,20 @@ def get_points(pa_league_data, pc_player, pc_session_id="", pc_round_id=""):
 
 def main(pc_data_file):
     ll_cont = True
+
+    if pc_data_file and not os.path.isfile(pc_data_file):
+        pc_data_file = os.path.join(os.path.dirname(__file__), pc_data_file)
+
     if os.path.isfile(pc_data_file):
         try:
             lo_json_data=open(pc_data_file).read()
             la_league_data = json.loads(lo_json_data)
         except Exception as e:
-            print("Error reading league data file: " + str(e))
+            st.write("Error reading league data file: " + str(e))
             ll_cont = False
 
     else:
-        print("Unable to find league data file: " + pc_data_file)
+        st.write("Unable to find league data file: " + pc_data_file)
         ll_cont = False
 
     if ll_cont:
@@ -224,7 +229,7 @@ def main(pc_data_file):
 #-- Call Main program
 if __name__ == "__main__":
     pc_data_file = ""
-    if "DATA_FILE" in st.secrets:
+    if st.secrets and "DATA_FILE" in st.secrets:
         pc_data_file = st.secrets["DATA_FILE"]
 
     else:
