@@ -21,7 +21,7 @@ def push_dat_file(pc_data_file, pa_league_data):
 
     if ll_cont:
         #-- GitHub API Endpoint for contents
-        lc_github_file_url = f"https://github.com{lc_repo_owner}/{lc_repo_name}/contents/{pc_data_file}"
+        lc_github_file_url = f"https://github.com/{lc_repo_owner}/{lc_repo_name}/contents/{pc_data_file}"
 
         la_headers = {
             "Authorization": f"token {lc_github_pat}",
