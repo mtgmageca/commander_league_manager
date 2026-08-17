@@ -9,12 +9,12 @@ from main import save
 
 
 def generate_pods(pc_session_id, pa_league_data, pa_selected_players):
-    ln__round_number = 0
+    ln_round_number = 0
     for lc_check_round in pa_league_data["SESSIONS"][pc_session_id].keys():
-        if int(lc_check_round.replace("Round ", "")) > ln__round_number:
-            ln__round_number = int(lc_check_round.replace("Round ", ""))
+        if int(lc_check_round.replace("Round ", "")) > ln_round_number:
+            ln_round_number = int(lc_check_round.replace("Round ", ""))
 
-    lc_round_id = "Round " + str(ln__round_number + 1)
+    lc_round_id = "Round " + str(ln_round_number + 1)
     pa_league_data["SESSIONS"][pc_session_id][lc_round_id] = {}
 
     la_pods = {}
@@ -76,6 +76,7 @@ def get_pod_sizes(pn_total_players):
     return la_pod_sizes
 
 def sort_players(pa_league_data, pa_selected_players, pc_session_id, pc_round_id):
+    #-- Start with sorting by previous round points
     ln_round_number = int(pc_round_id.replace("Round ", ""))
     lc_round_id = "Round " + str(ln_round_number - 1)
     la_sorted_players = {}
@@ -88,13 +89,33 @@ def sort_players(pa_league_data, pa_selected_players, pc_session_id, pc_round_id
 
     la_sorted_players = dict(sorted(la_sorted_players.items(), key=lambda item: item[1], reverse=True))
 
-    ln_player_count = 0
+    #-- Now apply adjustment to avoid players being in the same pod as last round
+    la_adjustment_list = []
+    la_adjustment_control_list = list(la_sorted_players.keys())
+    for ln_loop in range(0, len(la_adjustment_control_list)):
+        if ln_loop + 1 < len(la_adjustment_control_list):
+            lc_player = la_adjustment_control_list[ln_loop]
+            lc_check_player = la_adjustment_control_list[ln_loop + 1]
+
+            if lc_round_id in pa_league_data["SESSIONS"][pc_session_id].keys():
+                for lc_pod in pa_league_data["SESSIONS"][pc_session_id][lc_round_id].keys():
+                    if lc_player in pa_league_data["SESSIONS"][pc_session_id][lc_round_id][lc_pod] and lc_check_player in pa_league_data["SESSIONS"][pc_session_id][lc_round_id][lc_pod]:
+                        if lc_player not in la_adjustment_list:
+                            la_sorted_players[lc_player] += 100
+                            la_adjustment_list.append(lc_player)
+                            la_adjustment_list.append(lc_check_player)
+
+    la_sorted_players = dict(sorted(la_sorted_players.items(), key=lambda item: item[1], reverse=True))
+
+    #-- Finally sort by total points
+    #ln_player_count = 0
     for lc_player in la_sorted_players.keys():
-        ln_rank = la_sorted_players[lc_player]
-        ln_player_count += 1
-        if lc_round_id == "Round 0" or ln_player_count > 4:
-            ln_rank += get_points(pa_league_data, lc_player)
-            la_sorted_players[lc_player] = ln_rank + random.randint(1, 3)
+        #ln_rank = la_sorted_players[lc_player]
+        #ln_player_count += 1
+        #if lc_round_id == "Round 0" or ln_player_count > 4:
+        #    ln_rank += get_points(pa_league_data, lc_player)
+        #    la_sorted_players[lc_player] = ln_rank
+        la_sorted_players[lc_player] += get_points(pa_league_data, lc_player) + random.randint(1, 4)
 
     la_sorted_players = dict(sorted(la_sorted_players.items(), key=lambda item: item[1], reverse=True))
 
