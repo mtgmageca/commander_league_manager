@@ -164,24 +164,47 @@ else:
     lc_error_message = "Data file parameter missing!"
     ll_cont = False
 
-if "session_id" in st.session_state:
-    lc_session_id = st.session_state["session_id"]
-else:
-    lc_error_message = "Session ID parameter missing!"
-    ll_cont = False
-
-if "default_checkboxes" in st.session_state:
-    ll_default_checkboxes = st.session_state["default_checkboxes"]
-else:
-    ll_default_checkboxes = False
-
-st.session_state["default_checkboxes"] = False
+if ll_cont:
+    if "session_id" in st.session_state:
+        lc_session_id = st.session_state["session_id"]
+    else:
+        lc_error_message = "Session ID parameter missing!"
+        ll_cont = False
 
 if ll_cont:
+    if "default_checkboxes" in st.session_state:
+        ll_default_checkboxes = st.session_state["default_checkboxes"]
+    else:
+        ll_default_checkboxes = False
+
+    st.session_state["default_checkboxes"] = False
+    ll_admin_login = False
+    if "admin_login" in st.session_state:
+        ll_admin_login = st.session_state["admin_login"]
+
     lc_league_name = os.path.basename(lc_data_file).upper()
     lc_league_name = lc_league_name[0:lc_league_name.find("_")]
-    st.markdown("<center><h2>" + lc_league_name + " Commander League</h2></center>", unsafe_allow_html=True)
-    st.markdown('<center><a href="/?session_id=" target="_self">(Home)</a></center>', unsafe_allow_html=True)
+
+    #-- Set layout and header columns
+    st.set_page_config(layout="wide")
+    st.markdown("""
+        <style>
+        header {visibility: hidden;}
+        .block-container {
+            padding-top: 0rem;
+            padding-bottom: 0rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        </style>
+        """, unsafe_allow_html=True)        
+
+    lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 6, 1, 2])
+    lo_hc2.write("")
+    lo_hc2.markdown("<center><h2>" + lc_league_name + " Commander League</h2></center>", unsafe_allow_html=True)
+    if lo_hc3.button("Home"):
+        st.session_state["session_id"] = ""
+        st.switch_page("main.py")
 
     lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 3, 3, 2])
 
@@ -192,18 +215,21 @@ if ll_cont:
         lo_ic1.write("##### Players for session " + lc_display_session + ":")
 
         with lo_ic2:
-            ll_apply_rares = True
-            for lc_player in la_league_data["PLAYERS"].keys():
-                if lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"] and "RARES" in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id] and la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["RARES"] > 0:
-                    ll_apply_rares = False
-                    break
+            if ll_admin_login:
+                ll_apply_rares = True
+                ln_total_points = 0
+                for lc_player in la_league_data["PLAYERS"].keys():
+                    ln_total_points += get_points(la_league_data, lc_player, lc_session_id)
 
-            if ll_apply_rares:
-                if st.button("Apply Rares", key="rares_button"):
-                    if apply_rares(la_league_data, lc_session_id, lc_data_file):
-                        st.rerun()
-                    else:
-                        st.error("Failed to apply rares.")
+                if ln_total_points == 0:
+                    ll_apply_rares = False
+
+                if ll_apply_rares:
+                    if st.button("Apply Rares", key="rares_button"):
+                        if apply_rares(la_league_data, lc_session_id, lc_data_file):
+                            st.rerun()
+                        else:
+                            st.error("Failed to apply rares.")
 
         la_selected_players = []
         la_include = {}
@@ -212,19 +238,18 @@ if ll_cont:
         else:
             ll_default_checkboxes = False
 
-        la_sorted_players = {}
+        la_sorted_players_points = {}
         for lc_player in la_league_data["PLAYERS"].keys():
-            la_sorted_players[lc_player] = get_points(la_league_data, lc_player, lc_session_id)
+            la_sorted_players_points[lc_player] = get_points(la_league_data, lc_player, lc_session_id)
 
-        la_sorted_players = dict(sorted(la_sorted_players.items(), key=lambda item: (-item[1], item[0])))
-        #la_sorted_players = dict(sorted(la_sorted_players.items(), key=lambda item: item[0]))
+        la_sorted_players_points = dict(sorted(la_sorted_players_points.items(), key=lambda item: (-item[1], item[0])))
 
         lo_ic1, lo_ic2, lo_ic3, lo_ic4 = st.columns([2, 1, 1, 2])
         lo_ic1.write("Player")
         lo_ic2.write("Session Points")
         lo_ic3.write("Rares")
 
-        for lc_player in la_sorted_players.keys():
+        for lc_player in la_sorted_players_points.keys():
             la_include[lc_player] = False
             if ll_default_checkboxes:
                 for lc_pod in la_league_data["SESSIONS"][lc_session_id][lc_latest_round].keys():
@@ -236,26 +261,24 @@ if ll_cont:
             lo_ic1, lo_ic2, lo_ic3, lo_ic4 = st.columns([2, 1, 1, 2])
 
             with lo_ic1:
-                if st.checkbox(lc_player, key=f"la_include['{lc_player}']"):
-                    if lc_player not in la_selected_players:
-                        la_selected_players.append(lc_player)
-                else:
-                    if lc_player in la_selected_players:
-                        la_selected_players.remove(lc_player)
+                if ll_admin_login:
+                    if st.checkbox(lc_player, key=f"la_include['{lc_player}']"):
+                        if lc_player not in la_selected_players:
+                            la_selected_players.append(lc_player)
+                    else:
+                        if lc_player in la_selected_players:
+                            la_selected_players.remove(lc_player)
 
-            lo_ic2.write(str(la_sorted_players[lc_player]))
+                else:
+                    st.write(lc_player)
+
+            lo_ic2.write(str(la_sorted_players_points[lc_player]))
 
             ln_rares = 0
             if lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"] and "RARES" in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]:
                 ln_rares = la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["RARES"]
 
             lo_ic3.write(str(ln_rares))
-
-            #lc_commander = la_league_data["PLAYERS"][lc_player]["COMMANDER"]
-            #if la_league_data["PLAYERS"][lc_player]["SECONDARY_COMMANDER"]:
-            #    lc_commander += " / " + la_league_data["PLAYERS"][lc_player]["SECONDARY_COMMANDER"]
-
-            #lo_ic2.write(lc_commander)
 
         st.write("")
         st.write("")
@@ -283,17 +306,16 @@ if ll_cont:
                     st.write(lc_pod_id + ": " + lc_players)
 
                 lo_ic1, lo_ic2 = st.columns([1, 4])
-                with lo_ic1:
-                    if st.button("Points", key=f"points_{lc_round_id}"):
-                        st.session_state["session_id"] = lc_session_id
+                if ll_admin_login:
+                    if lo_ic1.button("Points", key=f"points_{lc_round_id}"):
+                        #st.session_state["session_id"] = lc_session_id
                         st.session_state["round_id"] = lc_round_id
                         st.switch_page("pages/points.py")
 
-                if lc_round_id == lc_max_round:
-                    with lo_ic2:
-                        if st.button("Delete Round", key=f"delete_{lc_round_id}"):
+                    if lc_round_id == lc_max_round:
+                        if lo_ic2.button("Delete Round", key=f"delete_{lc_round_id}"):
                             for lc_player in la_league_data["PLAYERS"].keys():
-                                if lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"].keys() and lc_round_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"].keys():
+                                if lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"].keys() and "ROUNDS" in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id] and lc_round_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"].keys():
                                     del la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"][lc_round_id]
 
                             if lc_round_id in la_league_data["SESSIONS"][lc_session_id]:
@@ -304,22 +326,23 @@ if ll_cont:
                             if ll_cont:
                                 st.rerun()
 
-        if len(la_selected_players) > 4:
+        if len(la_selected_players) > 5:
             lc_pods = "Pods"
         else:
             lc_pods = "Pod"
 
-        ll_gen_pods_disabled = False
-        if len(la_selected_players) < 1:
-            ll_gen_pods_disabled = True
+        if ll_admin_login:
+            ll_gen_pods_disabled = False
+            if len(la_selected_players) < 1:
+                ll_gen_pods_disabled = True
 
-        if st.button("Generate " + lc_pods, disabled=ll_gen_pods_disabled):
-            la_league_data = generate_pods(lc_session_id, la_league_data, la_selected_players)
+            if st.button("Generate " + lc_pods, disabled=ll_gen_pods_disabled):
+                la_league_data = generate_pods(lc_session_id, la_league_data, la_selected_players)
 
-            ll_cont = save(lc_data_file, la_league_data)
+                ll_cont = save(lc_data_file, la_league_data)
 
-            if ll_cont:
-                st.rerun()
+                if ll_cont:
+                    st.rerun()
 
         st.write("")
         st.write("")

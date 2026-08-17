@@ -83,6 +83,32 @@ def get_points(pa_league_data, pc_player, pc_session_id="", pc_round_id=""):
 
     return ln_points
 
+def create_player_table(pa_league_data):
+    lc_html_table = "<table><tr><th>Player</th><th>Commander</th><th>Points</th><th>Total Rares</th></tr>"
+    la_sorted_list = {}
+    for lc_player in pa_league_data["PLAYERS"].keys():
+        ln_points = get_points(pa_league_data, lc_player)
+
+        lc_commander = pa_league_data["PLAYERS"][lc_player]["COMMANDER"]
+        if pa_league_data["PLAYERS"][lc_player]["SECONDARY_COMMANDER"]:
+            lc_commander += " / " + pa_league_data["PLAYERS"][lc_player]["SECONDARY_COMMANDER"]
+
+        la_sorted_list[lc_player] = {"POINTS": ln_points, "COMMANDER": lc_commander}
+
+    la_sorted_list = dict(sorted(la_sorted_list.items(), key=lambda item: (-item[1]["POINTS"], item[0])))
+
+    for lc_player in la_sorted_list.keys():
+        ln_total_rares = pa_league_data["INITIAL_RARES"]
+        for lc_session_id in pa_league_data["PLAYERS"][lc_player]["SESSIONS"].keys():
+            if "RARES" in pa_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]:
+                ln_total_rares += pa_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["RARES"]
+
+        lc_html_table += "<tr><td>" + lc_player + "</td><td>" + la_sorted_list[lc_player]["COMMANDER"] + "</td><td>" + str(la_sorted_list[lc_player]["POINTS"]) + "</td><td>" + str(ln_total_rares) + "</td></tr>"
+
+    lc_html_table += "</table>"
+
+    return lc_html_table
+
 def save(pc_data_file, pa_league_data):
     ll_cont = True
     try:
@@ -119,7 +145,11 @@ def main(pc_data_file):
 
     if ll_cont:
         st.session_state["data_file"] = pc_data_file
-        #la_query_params = st.query_params
+        ll_admin_login = False
+        if "admin_login" in st.session_state:
+            ll_admin_login = st.session_state["admin_login"]
+        else:
+            st.session_state["admin_login"] = False
 
         #-- Set layout and header columns
         st.set_page_config(layout="wide")
@@ -135,58 +165,39 @@ def main(pc_data_file):
             </style>
             """, unsafe_allow_html=True)        
 
-        lc_session_id = ""
-        if "session_id" in st.session_state:
-            lc_session_id = st.session_state["session_id"]
-
-        lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 6, 2, 2])
-        if lo_hc3.button("Admin Login"):
-            st.success("Login successful.")
+        lo_hc1, lo_hc2, lo_hc3, lo_hc4, lo_hc5 = st.columns([4, 1, 5, 2, 2])
+        lc_logo_file = os.path.join(os.path.dirname(__file__), "logo.jpg")
+        if os.path.isfile(lc_logo_file):
+            lo_hc2.image(lc_logo_file, width=100)
+        else:
+            lo_hc2.write("Logo not found.")
 
         lc_league_name = os.path.basename(pc_data_file).upper()
         lc_league_name = lc_league_name[0:lc_league_name.find("_")]
-        st.markdown("<center><h2>" + lc_league_name + " Commander League</h2></center>", unsafe_allow_html=True)
-        if lc_session_id:
-            st.markdown('<center><a href="/?session_id=" target="_self">(Home)</a></center>', unsafe_allow_html=True)
+        lo_hc3.write("")
+        lo_hc3.markdown("<h2>" + lc_league_name + " Commander League</h2>", unsafe_allow_html=True)
 
-        lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 5, 2, 2])
+        if ll_admin_login:
+            lo_hc4.write("")
+            lo_hc4.write("")
+        else:
+            if lo_hc4.button("Admin Login"):
+                st.switch_page("pages/login.py")
 
-        #-- Default View
+        lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([3, 5, 3, 3])
+
         with lo_hc2:
             st.write("")
-            lo_ic1, lo_ic2 = st.columns([1, 5])
+            lo_ic1, lo_ic2 = st.columns([1, 4])
             lo_ic1.write("##### Player List:")
 
             with lo_ic2:
-                if st.button("Add Player"):
-                    st.switch_page("pages/add_player.py")
+                if ll_admin_login:
+                    if st.button("Add Player"):
+                        st.switch_page("pages/add_player.py")
 
             if len(la_league_data["PLAYERS"].keys()) > 0:
-                lc_html_table = "<table><tr><th>Player</th><th>Commander</th><th>Points</th><th>Total Rares</th></tr>"
-                la_sorted_list = {}
-                for lc_player in la_league_data["PLAYERS"].keys():
-                    ln_points = get_points(la_league_data, lc_player)
-
-                    lc_commander = la_league_data["PLAYERS"][lc_player]["COMMANDER"]
-                    if la_league_data["PLAYERS"][lc_player]["SECONDARY_COMMANDER"]:
-                        lc_commander += " / " + la_league_data["PLAYERS"][lc_player]["SECONDARY_COMMANDER"]
-
-                    la_sorted_list[lc_player] = {"POINTS": ln_points, "COMMANDER": lc_commander}
-
-                la_sorted_list = dict(sorted(la_sorted_list.items(), key=lambda item: (-item[1]["POINTS"], item[0])))
-
-                for lc_player in la_sorted_list.keys():
-                    ln_total_rares = la_league_data["INITIAL_RARES"]
-                    for lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"].keys():
-                        if "RARES" in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]:
-                            ln_total_rares += la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["RARES"]
-
-                    lc_html_table += "<tr><td>" + lc_player + "</td><td>" + la_sorted_list[lc_player]["COMMANDER"] + "</td><td>" + str(la_sorted_list[lc_player]["POINTS"]) + "</td><td>" + str(ln_total_rares) + "</td></tr>"
-                    #lo_ic1, lo_ic2 = st.columns([1, 3])
-                    #lo_ic1.write(lc_player + " (" + str(la_sorted_list[lc_player]["POINTS"]) + ")")
-                    #lo_ic2.write(la_sorted_list[lc_player]["COMMANDER"])
-
-                lc_html_table += "</table>"
+                lc_html_table = create_player_table(la_league_data)
                 st.markdown(lc_html_table, unsafe_allow_html=True)
 
             else:
@@ -213,18 +224,19 @@ def main(pc_data_file):
                 else:
                     st.write("No sessions found.")
 
-                if st.button("Add Session"):
-                    lc_current_date = datetime.now().strftime("%Y%m%d")
-                    if lc_current_date in la_league_data["SESSIONS"].keys():
-                        st.warning("Session for the current date already exists.")
-                    else:
-                        la_league_data["SESSIONS"][lc_current_date] = {}
-                        st.session_state["session_id"] = lc_current_date
+                if ll_admin_login:
+                    if st.button("Add Session"):
+                        lc_current_date = datetime.now().strftime("%Y%m%d")
+                        if lc_current_date in la_league_data["SESSIONS"].keys():
+                            st.warning("Session for the current date already exists.")
+                        else:
+                            la_league_data["SESSIONS"][lc_current_date] = {}
+                            st.session_state["session_id"] = lc_current_date
 
-                        ll_cont = save(pc_data_file, la_league_data)
+                            ll_cont = save(pc_data_file, la_league_data)
 
-                        if ll_cont:
-                            st.rerun()
+                            if ll_cont:
+                                st.rerun()
 
     if ll_cont:
         ln_return_code = 0

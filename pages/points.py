@@ -50,8 +50,8 @@ if ll_cont:
                     lo_ic1.write("- " + lc_player)
                     la_points[lc_player] = lo_ic2.number_input(lc_player, min_value=0, max_value=5, value=ln_current_points, label_visibility="collapsed")
 
-        lo_ic1, lo_ic2 = st.columns([1, 4])
-        with lo_ic1:
+        lo_ic1, lo_ic2, lo_ic3, lo_ic4 = st.columns([1, 1, 1, 1])
+        with lo_ic2:
             if st.button("Save"):
                 for lc_player in la_points.keys():
                     if lc_session_id not in la_league_data["PLAYERS"][lc_player]["SESSIONS"]:
@@ -70,7 +70,7 @@ if ll_cont:
                     st.session_state["default_checkboxes"] = True
                     st.switch_page("pages/session.py")
 
-        with lo_ic2:
+        with lo_ic3:
             if st.button("Cancel"):
                 st.session_state["data_file"] = lc_data_file
                 st.session_state["session_id"] = lc_session_id
