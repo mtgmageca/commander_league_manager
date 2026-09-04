@@ -194,7 +194,7 @@ def main(pc_data_file):
             with lo_ic2:
                 if ll_admin_login:
                     if st.button("Add Player"):
-                        st.switch_page("pages/add_player.py")
+                        st.switch_page("pages/player.py")
 
             if len(la_league_data["PLAYERS"].keys()) > 0:
                 lc_html_table = create_player_table(la_league_data)
