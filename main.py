@@ -188,12 +188,19 @@ def main(pc_data_file):
 
         with lo_hc2:
             st.write("")
-            lo_ic1, lo_ic2 = st.columns([1, 4])
+            lo_ic1, lo_ic2, lo_ic3 = st.columns([1, 2, 2])
             lo_ic1.write("##### Player List:")
 
             with lo_ic2:
                 if ll_admin_login:
                     if st.button("Add Player"):
+                        st.session_state["edit"] = False
+                        st.switch_page("pages/player.py")
+
+            with lo_ic3:
+                if ll_admin_login:
+                    if st.button("Edit Player"):
+                        st.session_state["edit"] = True
                         st.switch_page("pages/player.py")
 
             if len(la_league_data["PLAYERS"].keys()) > 0:
