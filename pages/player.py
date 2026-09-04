@@ -93,6 +93,9 @@ if ll_cont:
 
                             del la_league_data["PLAYERS"][lc_original_username]
 
+                        elif lc_username in la_league_data["PLAYERS"]:
+                            la_sessions = la_league_data["PLAYERS"][lc_username]["SESSIONS"]
+
                         else:
                             la_sessions = {}
 
