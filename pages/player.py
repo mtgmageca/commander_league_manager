@@ -32,34 +32,52 @@ if ll_cont:
     lc_league_name = lc_league_name[0:lc_league_name.find("_")]
     st.markdown("<center><h2>" + lc_league_name + " Commander League</h2></center>", unsafe_allow_html=True)
 
-lo_hc1, lo_hc2, lo_hc3 = st.columns([1, 1, 1])
+    lo_hc1, lo_hc2, lo_hc3 = st.columns([1, 1, 1])
 
-with lo_hc2:
-    st.write("")
- 
-    if ll_cont:
-        st.write("##### Add Player Page")
-        lc_username = st.text_input("Player Name:")
-        lc_commander = st.text_input("Commander:")
-        lc_secondary_commander = st.text_input("Secondary Commander (if applicable):")
+    with lo_hc2:
+        st.write("")
+        lc_username = ""
+        if "username" in st.session_state and st.session_state["username"]:
+            lc_username = st.session_state["username"]
+
+        lc_commander = ""
+        if "commander" in st.session_state and st.session_state["commander"]:
+            lc_commander = st.session_state["commander"]
+
+        lc_secondary_commander = ""
+        if "secondary_commander" in st.session_state and st.session_state["secondary_commander"]:
+            lc_secondary_commander = st.session_state["secondary_commander"]
+
+        if lc_username:
+            st.write("##### Edit Player Page")
+        else:
+            st.write("##### Add Player Page")
+
+        lc_username = st.text_input("Player Name:", value=lc_username)
+        lc_commander = st.text_input("Commander:", value=lc_commander)
+        lc_secondary_commander = st.text_input("Secondary Commander (if applicable):", value=lc_secondary_commander)
 
         lo_ic1, lo_ic2 = st.columns([1, 4])
         with lo_ic1:
             if st.button("Save"):
+                lc_username = lc_username.strip()
+                lc_commander = lc_commander.strip()
+                lc_secondary_commander = lc_secondary_commander.strip()
                 ll_cont = False
+
                 if not lc_username:
                     st.warning("Player name cannot be empty.")
 
                 elif not lc_commander:
                     st.warning("Commander name cannot be empty.")
 
-                elif lc_username in la_league_data["PLAYERS"]:
+                elif lc_username in la_league_data["PLAYERS"] and lc_username != st.session_state["username"]:
                     st.warning("Player already exists.")
 
                 else:
-                    lc_username = lc_username.strip()
-                    lc_commander = lc_commander.strip()
-                    lc_secondary_commander = lc_secondary_commander.strip()
+                    if lc_username != st.session_state["username"] and st.session_state["username"] in la_league_data["PLAYERS"]:
+                        del la_league_data["PLAYERS"][st.session_state["username"]]
+
                     la_league_data["PLAYERS"][lc_username] = {
                         "COMMANDER": lc_commander,
                         "SECONDARY_COMMANDER": lc_secondary_commander,
@@ -69,13 +87,19 @@ with lo_hc2:
                     ll_cont = save(lc_data_file, la_league_data)
 
                 if ll_cont:
+                    st.session_state["username"] = ""
+                    st.session_state["commander"] = ""
+                    st.session_state["secondary_commander"] = ""
                     st.switch_page("main.py")
 
         with lo_ic2:
             if st.button("Cancel"):
+                st.session_state["username"] = ""
+                st.session_state["commander"] = ""
+                st.session_state["secondary_commander"] = ""
                 st.switch_page("main.py")
 
-    else:
-        st.write("Error loading league data.")
-        time.sleep(3)
-        st.switch_page("main.py")
+else:
+    st.write("Error loading league data.")
+    time.sleep(3)
+    st.switch_page("main.py")
