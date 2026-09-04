@@ -54,9 +54,9 @@ def push_dat_file(pc_data_file, pa_league_data):
         lo_put_response = requests.put(lc_github_file_url, headers=la_headers, json=la_payload)
 
         if lo_put_response.status_code in [200, 201]:
-            st.success("Saved.")
+            st.success("File Saved.")
         else:
-            st.error(f"Save Failed!")
+            st.error(f"Save File Failed!")
             print(lo_put_response.text)
             ll_cont = False
 
@@ -188,7 +188,7 @@ def main(pc_data_file):
 
         with lo_hc2:
             st.write("")
-            lo_ic1, lo_ic2, lo_ic3, lo_ic4 = st.columns([1, 1, 1, 1])
+            lo_ic1, lo_ic2, lo_ic3, lo_ic4 = st.columns([2, 2, 2, 3])
             lo_ic1.write("##### Player List:")
 
             with lo_ic2:
