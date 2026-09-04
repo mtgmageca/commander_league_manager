@@ -188,7 +188,7 @@ def main(pc_data_file):
 
         with lo_hc2:
             st.write("")
-            lo_ic1, lo_ic2, lo_ic3 = st.columns([1, 1, 1])
+            lo_ic1, lo_ic2, lo_ic3, lo_ic4 = st.columns([1, 1, 1, 1])
             lo_ic1.write("##### Player List:")
 
             with lo_ic2:
