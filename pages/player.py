@@ -83,12 +83,23 @@ if ll_cont:
 
                     else:
                         if lc_username != lc_original_username and lc_original_username in la_league_data["PLAYERS"]:
+                            la_sessions = la_league_data["PLAYERS"][lc_original_username]["SESSIONS"]
+                            for lc_session_id in la_league_data["SESSIONS"].keys():
+                                for lc_round_id in la_league_data["SESSIONS"][lc_session_id].keys():
+                                    for lc_pod_id in la_league_data["SESSIONS"][lc_session_id][lc_round_id].keys():
+                                        if lc_original_username in la_league_data["SESSIONS"][lc_session_id][lc_round_id][lc_pod_id]:
+                                            la_league_data["SESSIONS"][lc_session_id][lc_round_id][lc_pod_id].remove(lc_original_username)
+                                            la_league_data["SESSIONS"][lc_session_id][lc_round_id][lc_pod_id].append(lc_username)
+
                             del la_league_data["PLAYERS"][lc_original_username]
+
+                        else:
+                            la_sessions = {}
 
                         la_league_data["PLAYERS"][lc_username] = {
                             "COMMANDER": lc_commander,
                             "SECONDARY_COMMANDER": lc_secondary_commander,
-                            "SESSIONS": {}
+                            "SESSIONS": la_sessions
                         }
 
                         ll_cont = save(lc_data_file, la_league_data)
