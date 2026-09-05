@@ -148,6 +148,16 @@ def main(pc_data_file):
         ll_admin_login = False
         if "admin_login" in st.session_state:
             ll_admin_login = st.session_state["admin_login"]
+
+        elif "admin_login" in st.query_params:
+            lc_admin_login = st.query_params["admin_login"]
+            lc_admin_login = lc_admin_login.encode("utf-8")
+            lc_admin_login = base64.b64decode(lc_admin_login).decode("utf-8")
+            if st.secrets and "ADMIN_USER" in st.secrets and "ADMIN_PASSWORD" in st.secrets:
+                if st.secrets["ADMIN_USER"] in lc_admin_login and st.secrets["ADMIN_PASSWORD"] in lc_admin_login:
+                    ll_admin_login = True
+                    st.session_state["admin_login"] = True
+
         else:
             st.session_state["admin_login"] = False
 
@@ -170,7 +180,7 @@ def main(pc_data_file):
         if os.path.isfile(lc_logo_file):
             lo_hc2.image(lc_logo_file, width=100)
         else:
-            lo_hc2.write("Logo not found.")
+            lo_hc2.write(" ")
 
         lc_league_name = os.path.basename(pc_data_file).upper()
         lc_league_name = lc_league_name[0:lc_league_name.find("_")]
@@ -183,6 +193,44 @@ def main(pc_data_file):
         else:
             if lo_hc4.button("Admin Login"):
                 st.switch_page("pages/login.py")
+
+        lo_hc1, lo_hc2, lo_hc3 = st.columns([1, 3, 1])
+        with lo_hc2:
+            if ll_admin_login or ("MESSAGE" in la_league_data and la_league_data["MESSAGE"]):
+                lc_message = ""
+                if "MESSAGE" in la_league_data and la_league_data["MESSAGE"]:
+                    lc_message = la_league_data["MESSAGE"]
+
+                with st.container(border=True):
+                    if ll_admin_login and "edit" in st.session_state and st.session_state["edit"]:
+                        lc_message = st.text_area("Edit Message:", value=lc_message, key="message_input")
+
+                        lo_ic1, lo_ic2 = st.columns([1, 4])
+                        with lo_ic1:
+                            if st.button("Save Message"):
+                                la_league_data["MESSAGE"] = lc_message
+                                ll_cont = save(pc_data_file, la_league_data)
+
+                                if ll_cont:
+                                    st.session_state["data_file"] = pc_data_file
+                                    st.session_state["edit"] = False
+                                    st.rerun()
+
+                                else:
+                                    st.warning("Error saving message.")
+
+                        with lo_ic2:
+                            if st.button("Cancel"):
+                                st.session_state["edit"] = False
+                                st.rerun()
+
+                    else:
+                        st.markdown(lc_message, unsafe_allow_html=True)
+
+                    if ll_admin_login and not ("edit" in st.session_state and st.session_state["edit"]):
+                        if st.button("Edit Message"):
+                            st.session_state["edit"] = True
+                            st.rerun()
 
         lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([3, 5, 3, 3])
 
@@ -226,7 +274,7 @@ def main(pc_data_file):
                         if st.button(lc_display_session):
                             st.session_state["session_id"] = lc_session_id
                             st.session_state["default_checkboxes"] = True
-                            st.switch_page("pages/session.py")
+                            st.switch_page("pages/session.py", query_params={"data_file": pc_data_file, "session_id": lc_session_id})
 
                 else:
                     st.write("No sessions found.")

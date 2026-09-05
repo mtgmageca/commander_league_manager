@@ -165,9 +165,14 @@ def apply_rares(pa_league_data, pc_session_id, pc_data_file):
 
 ll_cont = True
 lc_error_message = ""
+lc_data_file = ""
 if "data_file" in st.session_state:
     lc_data_file = st.session_state["data_file"]
 
+elif "data_file" in st.query_params:
+    lc_data_file = st.query_params["data_file"]
+
+if lc_data_file:
     if os.path.isfile(lc_data_file):
         try:
             lo_json_data=open(lc_data_file).read()
@@ -188,6 +193,10 @@ else:
 if ll_cont:
     if "session_id" in st.session_state:
         lc_session_id = st.session_state["session_id"]
+
+    elif "session_id" in st.query_params:
+        lc_session_id = st.query_params["session_id"]
+
     else:
         lc_error_message = "Session ID parameter missing!"
         ll_cont = False
@@ -195,6 +204,7 @@ if ll_cont:
 if ll_cont:
     if "default_checkboxes" in st.session_state:
         ll_default_checkboxes = st.session_state["default_checkboxes"]
+
     else:
         ll_default_checkboxes = False
 

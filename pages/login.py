@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import json
+import base64
 import streamlit as st
 from main import push_dat_file
 from main import save
@@ -48,7 +49,12 @@ with lo_hc2:
 
                     if lc_admin_user and lc_admin_password and lc_admin_user == lc_username and lc_admin_password == lc_password:
                         st.session_state["admin_login"] = True
-                        st.switch_page("main.py")
+                        lc_admin_login = lc_username + ":" + lc_password
+                        lc_admin_login = base64.b64encode(lc_admin_login.encode("utf-8")).decode("utf-8")
+                        st.query_params["admin_login"] = lc_admin_login
+                        print(st.query_params)
+                        st.switch_page("main.py", query_params=st.query_params)
+
                     else:
                         st.warning("Invalid user name or password.")
 
