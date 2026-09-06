@@ -232,18 +232,64 @@ if ll_cont:
 
     lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 6, 1, 2])
     lo_hc2.write("")
-    lo_hc2.markdown("<center><h2>" + lc_league_name + " Commander League</h2></center>", unsafe_allow_html=True)
+    lc_display_session = lc_session_id[4:6] + "/" + lc_session_id[6:8] + "/" + lc_session_id[0:4]
+    lo_hc2.markdown("<center><h2>" + lc_league_name + " Commander League</h2><h5>Session: " + lc_display_session + "</h5></center>", unsafe_allow_html=True)
     if lo_hc3.button("Home"):
         st.session_state["session_id"] = ""
         st.switch_page("main.py")
 
-    lo_hc1, lo_hc2, lo_hc3, lo_hc4 = st.columns([2, 3, 3, 2])
+    lo_hc1, lo_hc2, lo_hc3, lo_hc4, lo_hc5 = st.columns([2, 4, 1, 3, 2])
 
     with lo_hc2:
-        lc_display_session = lc_session_id[4:6] + "/" + lc_session_id[6:8] + "/" + lc_session_id[0:4]
         st.write("")
-        lo_ic1, lo_ic2 = st.columns([3, 2])
-        lo_ic1.write("##### Players for session " + lc_display_session + ":")
+        st.write("##### Pod List:")
+
+        lc_max_round = 0
+        if lc_session_id in la_league_data["SESSIONS"] and len(la_league_data["SESSIONS"][lc_session_id].keys()) > 0:
+            lc_max_round = max(la_league_data["SESSIONS"][lc_session_id].keys())
+
+        for lc_round_id in la_league_data["SESSIONS"][lc_session_id]:
+            st.write("")
+            with st.container(border=True):
+                st.write(lc_round_id)
+                for lc_pod_id in la_league_data["SESSIONS"][lc_session_id][lc_round_id].keys():
+                    lc_players = ""
+                    for lc_player in la_league_data["SESSIONS"][lc_session_id][lc_round_id][lc_pod_id]:
+                        ln_points = get_points(la_league_data, lc_player, lc_session_id, lc_round_id)
+                        lc_players += lc_player + " (" + str(ln_points) + "), "
+
+                    lc_players = lc_players.rstrip(", ") + ""
+
+                    st.write(lc_pod_id + ": " + lc_players)
+
+                lo_ic1, lo_ic2 = st.columns([1, 4])
+                if ll_admin_login:
+                    if lo_ic1.button("Points", key=f"points_{lc_round_id}"):
+                        #st.session_state["session_id"] = lc_session_id
+                        st.session_state["round_id"] = lc_round_id
+                        st.switch_page("pages/points.py")
+
+                    if lc_round_id == lc_max_round:
+                        if lo_ic2.button("Delete Round", key=f"delete_{lc_round_id}"):
+                            for lc_player in la_league_data["PLAYERS"].keys():
+                                if lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"].keys() and "ROUNDS" in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id] and lc_round_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"].keys():
+                                    del la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"][lc_round_id]
+
+                            if lc_round_id in la_league_data["SESSIONS"][lc_session_id]:
+                                del la_league_data["SESSIONS"][lc_session_id][lc_round_id]
+
+                            ll_cont = save(lc_data_file, la_league_data)
+
+                            if ll_cont:
+                                st.rerun()
+
+        st.write("")
+        st.write("")
+
+    with lo_hc4:
+        st.write("")
+        lo_ic1, lo_ic2 = st.columns([1, 2])
+        lo_ic1.write("##### Players:")
 
         with lo_ic2:
             if ll_admin_login:
@@ -311,63 +357,12 @@ if ll_cont:
 
             lo_ic3.write(str(ln_rares))
 
-        st.write("")
-        st.write("")
-
-    with lo_hc3:
-        st.write("")
-        st.write("##### Pod List:")
-
-        lc_max_round = 0
-        if lc_session_id in la_league_data["SESSIONS"] and len(la_league_data["SESSIONS"][lc_session_id].keys()) > 0:
-            lc_max_round = max(la_league_data["SESSIONS"][lc_session_id].keys())
-
-        for lc_round_id in la_league_data["SESSIONS"][lc_session_id]:
-            st.write("")
-            with st.container(border=True):
-                st.write(lc_round_id)
-                for lc_pod_id in la_league_data["SESSIONS"][lc_session_id][lc_round_id].keys():
-                    lc_players = ""
-                    for lc_player in la_league_data["SESSIONS"][lc_session_id][lc_round_id][lc_pod_id]:
-                        ln_points = get_points(la_league_data, lc_player, lc_session_id, lc_round_id)
-                        lc_players += lc_player + " (" + str(ln_points) + "), "
-
-                    lc_players = lc_players.rstrip(", ") + ""
-
-                    st.write(lc_pod_id + ": " + lc_players)
-
-                lo_ic1, lo_ic2 = st.columns([1, 4])
-                if ll_admin_login:
-                    if lo_ic1.button("Points", key=f"points_{lc_round_id}"):
-                        #st.session_state["session_id"] = lc_session_id
-                        st.session_state["round_id"] = lc_round_id
-                        st.switch_page("pages/points.py")
-
-                    if lc_round_id == lc_max_round:
-                        if lo_ic2.button("Delete Round", key=f"delete_{lc_round_id}"):
-                            for lc_player in la_league_data["PLAYERS"].keys():
-                                if lc_session_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"].keys() and "ROUNDS" in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id] and lc_round_id in la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"].keys():
-                                    del la_league_data["PLAYERS"][lc_player]["SESSIONS"][lc_session_id]["ROUNDS"][lc_round_id]
-
-                            if lc_round_id in la_league_data["SESSIONS"][lc_session_id]:
-                                del la_league_data["SESSIONS"][lc_session_id][lc_round_id]
-
-                            ll_cont = save(lc_data_file, la_league_data)
-
-                            if ll_cont:
-                                st.rerun()
-
-        if len(la_selected_players) > 5:
-            lc_pods = "Pods"
-        else:
-            lc_pods = "Pod"
-
         if ll_admin_login:
             ll_gen_pods_disabled = False
             if len(la_selected_players) < 1:
                 ll_gen_pods_disabled = True
 
-            if st.button("Generate " + lc_pods, disabled=ll_gen_pods_disabled):
+            if st.button("Generate Pod(s)", disabled=ll_gen_pods_disabled):
                 la_league_data = generate_pods(lc_session_id, la_league_data, la_selected_players)
 
                 ll_cont = save(lc_data_file, la_league_data)
