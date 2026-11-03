@@ -234,6 +234,18 @@ if ll_cont:
     lo_hc2.write("")
     lc_display_session = lc_session_id[4:6] + "/" + lc_session_id[6:8] + "/" + lc_session_id[0:4]
     lo_hc2.markdown("<center><h2>" + lc_league_name + " Commander League</h2><h5>Session: " + lc_display_session + "</h5></center>", unsafe_allow_html=True)
+    if ll_admin_login:
+        if lc_session_id in la_league_data["SESSIONS"] and len(la_league_data["SESSIONS"][lc_session_id].keys()) == 0:
+            if lo_hc2.button("Delete Session"):
+                st.success("Deleting session...")
+                del la_league_data["SESSIONS"][lc_session_id]
+                ll_cont = save(lc_data_file, la_league_data)
+                time.sleep(1)
+
+                if ll_cont:
+                    st.session_state["session_id"] = ""
+                    st.switch_page("main.py")
+
     if lo_hc3.button("Home"):
         st.session_state["session_id"] = ""
         st.switch_page("main.py")
