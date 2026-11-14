@@ -11,7 +11,7 @@ def generate_draft_order(pa_league_data):
     for lc_player, la_player_data in pa_league_data["PLAYERS"].items():
         ln_session_count = 0
         for lc_session in la_player_data["SESSIONS"].keys():
-            if len(la_player_data["SESSIONS"][lc_session]["ROUNDS"]) > 0:
+            if "ROUNDS" in la_player_data["SESSIONS"][lc_session] and len(la_player_data["SESSIONS"][lc_session]["ROUNDS"].keys()) > 0:
                 ln_session_count += 1
 
         ln_rating = ln_session_count * 1000
