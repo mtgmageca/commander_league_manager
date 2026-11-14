@@ -14,9 +14,10 @@ def generate_draft_order(pa_league_data):
             if "ROUNDS" in la_player_data["SESSIONS"][lc_session] and len(la_player_data["SESSIONS"][lc_session]["ROUNDS"].keys()) > 0:
                 ln_session_count += 1
 
-        ln_rating = ln_session_count * 1000
-        ln_rating += (900 - get_points(pa_league_data, lc_player))
-        la_sorted_players[lc_player] = ln_rating
+        if ln_session_count > 0:
+            ln_rating = ln_session_count * 1000
+            ln_rating += (900 - get_points(pa_league_data, lc_player))
+            la_sorted_players[lc_player] = ln_rating
 
     #-- Sort players by rating
     la_sorted_players = sorted(la_sorted_players.items(), key=lambda x: x[1], reverse=True)
