@@ -9,7 +9,12 @@ from main import get_points
 def generate_draft_order(pa_league_data):
     la_sorted_players = {}
     for lc_player, la_player_data in pa_league_data["PLAYERS"].items():
-        ln_rating = len(la_player_data["SESSIONS"].keys()) * 1000
+        ln_session_count = 0
+        for lc_session in la_player_data["SESSIONS"].keys():
+            if len(la_player_data["SESSIONS"][lc_session]["ROUNDS"]) > 0:
+                ln_session_count += 1
+
+        ln_rating = ln_session_count * 1000
         ln_rating += get_points(pa_league_data, lc_player)
         la_sorted_players[lc_player] = ln_rating
 
