@@ -15,7 +15,7 @@ def generate_draft_order(pa_league_data):
                 ln_session_count += 1
 
         ln_rating = ln_session_count * 1000
-        ln_rating += get_points(pa_league_data, lc_player)
+        ln_rating += (900 - get_points(pa_league_data, lc_player))
         la_sorted_players[lc_player] = ln_rating
 
     #-- Sort players by rating
