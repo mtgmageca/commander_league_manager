@@ -188,8 +188,8 @@ def main(pc_data_file):
         lo_hc3.markdown("<h2>" + lc_league_name + " Commander League</h2>", unsafe_allow_html=True)
 
         if ll_admin_login:
-            lo_hc4.write("")
-            lo_hc4.write("")
+            if lo_hc4.button("Admin Page"):
+                st.switch_page("pages/admin.py")
         else:
             if lo_hc4.button("Admin Login"):
                 st.switch_page("pages/login.py")
